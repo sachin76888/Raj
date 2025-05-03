@@ -1,0 +1,76 @@
+name: Auto Run BGMI Bot & C Program
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  run-bot-and-c:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          if [ -f requirement.txt ]; then
+            pip install -r requirement.txt  { echo "Python dependencies installation failed"; exit 1; }
+          else
+            echo "Error: requirement.txt file not found"; exit 1;
+          fi
+
+      - name: Install GCC
+        run: sudo apt-get install gcc -y  { echo "GCC installation failed"; exit 1; }
+
+      - name: Compile C Program
+        run: |
+          if [ -f Ultra.c ]; then
+            gcc -o Ultra Ultra.c -lpthread  { echo "C Program Compilation Failed"; exit 1; }
+          else
+            echo "Error: Ultra.c not found"; exit 1;
+          fi
+
+      - name: Run C Executable
+        run: |
+          if [ -f Ultra ]; then
+            ./Ultra  { echo "C Executable Failed"; exit 1; }
+          else
+            echo "Error: Ultra Executable not found"; exit 1;
+          fi
+
+      - name: Give Execute Permission to BGMI
+        run: |
+          if [ -f BGMI ]; then
+            chmod +x BGMI  { echo "Permission Change Failed"; exit 1; }
+          else
+            echo "Error: BGMI file not found"; exit 1;
+          fi
+
+      - name: Run BGMI Executable
+        run: |
+          if [ -f BGMI ]; then
+            ./BGMI  { echo "BGMI Execution Failed"; exit 1; }
+          else
+            echo "Error: BGMI Executable not found"; exit 1;
+          fi
+
+      - name: Run Telegram Bot
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+        run: |
+          if [ -f BGMI.py ]; then
+            python BGMI.py || { echo "BGMI.py Failed"; exit 1; }
+          else
+            echo "Error: BGMI.py file not found"; exit 1;
+          fi
